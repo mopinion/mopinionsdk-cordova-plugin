@@ -1,0 +1,23 @@
+{
+  "name": "com.mopinion.mopinionsdk-cordova-plugin",
+  "version": "0.1.0",
+  "description": "Cordova plugin to collect user feedback using Mopinion",
+  "cordova": {
+    "id": "mopinionsdk-cordova-plugin",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mopinion/mopinionsdk-cordova-plugin.git"
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-ios",
+    "cordova-android"
+  ],
+  "author": "Mopinion BV",
+  "license": "MIT"
+}
