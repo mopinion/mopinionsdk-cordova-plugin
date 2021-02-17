@@ -3,7 +3,7 @@ The Mopinion SDK Cordova plugin allows to collect feedback from a mobile Cordova
 It uses our webview based mobile SDKs 
 
 * [mopinion-sdk-ios-web](https://github.com/mopinion/mopinion-sdk-ios-web) for iOS
-* [mopinion-sdk-android-web] (https://github.com/mopinion/mopinion-sdk-ios-web) for Android
+* [mopinion-sdk-android-web](https://github.com/mopinion/mopinion-sdk-ios-web) for Android
 
 to actually implement the feedback forms.
 
@@ -18,17 +18,17 @@ to actually implement the feedback forms.
 
 ## Installation
 ### npm
-Cordova relies on npm. Install [Node.js/npm] (https://www.npmjs.com/get-npm) first.
+Cordova relies on npm. Install [Node.js/npm](https://www.npmjs.com/get-npm) first.
 
 ### Cordova
-Install [cordova] (https://cordova.apache.org/) using npm:
+Install [cordova](https://cordova.apache.org/) using npm:
 
 ```
 $ npm install -g cordova
 ```
 
 ### Create or open your project
-Use the terminal to navigate to the main folder of your Cordova project. Or create a new Cordova project following the [instructions on the Cordova site] (https://cordova.apache.org/#getstarted). The main folder is the folder that contains the platforms and www folders.
+Use the terminal to navigate to the main folder of your Cordova project. Or create a new Cordova project following the [instructions on the Cordova site](https://cordova.apache.org/#getstarted). The main folder is the folder that contains the platforms and www folders.
 
 ```
 $ cd {your-project-main-folder}
