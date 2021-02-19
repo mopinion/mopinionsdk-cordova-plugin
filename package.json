@@ -16,8 +16,15 @@
   "keywords": [
     "ecosystem:cordova",
     "cordova-ios",
-    "cordova-android"
+    "cordova-android",
+    "mopinion",
+    "feedback",
+    "user-feedback",
+    "targeted-surveys",
+    "in-app-feedback",
+    "sdk"
   ],
-  "author": "Mopinion BV",
-  "license": "MIT"
+  "author": "Mopinion",
+  "license": "MIT",
+  "homepage": "https://github.com/mopinion/mopinionsdk-cordova-plugin#readme"
 }
