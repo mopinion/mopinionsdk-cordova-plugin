@@ -8,7 +8,7 @@ It uses our webview based mobile SDKs
 to actually implement the feedback forms.
 
 ## Folders
-* `MopinionSDK` contains the Cordova plug-in. See it's [README for more info](https://github.com/mopinion/mopinionsdk-cordova-plugin/MopinionSDK/README.md).
+* `MopinionSDK` contains the Cordova plug-in. See its [README for more info](https://github.com/mopinion/mopinionsdk-cordova-plugin/blob/main/MopinionSDK/README.md).
 * `DemoApp` contains a Cordova app that you can build yourself and uses our plug-in.
 
 ## Release history
