@@ -13,6 +13,9 @@ to actually implement the feedback forms.
 
 ## Release history
 
+### Release notes 0.1.1
+* Added iOS `event` handler. Dark mode support.
+
 ### Release notes 0.1.0
 * This is a beta version to give you a sneak peek on our upcoming Cordova plugin release. If you encounter any issues, please inform us via support.
 * In Android, the plugin starts another activity. Make sure that your app saves its state before calling `event()` or `openFormAlways()`. 

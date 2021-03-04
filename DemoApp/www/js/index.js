@@ -20,7 +20,7 @@
 // Wait for the deviceready event before using any of Cordova's device APIs.
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 
-// This demo app remains unreleased as it consistently fails to return to the Cordova activity
+// "use strict";
 document.addEventListener('deviceready', onDeviceReady, false);
 
 function onDeviceReady() {
@@ -35,94 +35,99 @@ function onDeviceReady() {
     // set a default event name
     eventName = document.getElementById("eventName").value;
     if (eventName === "") {
-        document.getElementById("eventName").value="_button";
-    }        
+        document.getElementById("eventName").value = "_button";
+    }
 
+}
+
+function goodbye() {
+    navigator.app.exitApp();
+    navigator.device.exitApp();
+    window.close();
 }
 
 function setupUIhandlers() {
     console.log("About to attach eventlistener for button");
     buttonOpenUnconditional = document.getElementById("openWithEvaluate");
-    
-    buttonOpenUnconditional.addEventListener('click', function() {
+
+    buttonOpenUnconditional.addEventListener('click', function () {
         playWithSomeExtraData();
         eventName = document.getElementById("eventName").value;
         if (eventName === "") {
             alert("Specify an event name");
             return;
-        }        
+        }
 
         // check if a form would open for this event
         MopinionSDK.evaluate(
-            eventName, 
-            function(result) {
+            eventName,
+            function (result) {
                 console.log('SDK evaluate called OK');
-                if(result.hasResult) {
+                if (result.hasResult) {
                     openMyFeedbackForm(result);
-                }else{
-                    alert("No form would open from evaluate call.")
+                } else {
+                    alert("No form would open from evaluate call.");
                 }
             },
             function (err) {
                 console.log('SDK evaluate encountered an error ' + err);
-            } 
+            }
         );
-    })
+    });
 
-    buttonSendSDKevent = document.getElementById("openWithEvent");
+    var buttonSendSDKevent = document.getElementById("openWithEvent");
 
-    buttonSendSDKevent.addEventListener('click', function() {
+    buttonSendSDKevent.addEventListener('click', function () {
         eventName = document.getElementById("eventName").value;
         if (eventName === "") {
             alert("Specify an event name");
             return;
-        }        
+        }
         alert("Cordova will call the MopinionSDK. Depending on conditions, a form may or may not open.");
         MopinionSDK.event(
-            eventName, 
-            function(result) {
+            eventName,
+            function (result) {
                 console.log('SDK event called OK');
             },
             function (err) {
                 console.log('SDK event encountered an error');
-            } 
+            }
         );
 
-    })
+    });
 
-    buttonReloadDeployment = document.getElementById("reloadDeployment");
+    var buttonReloadDeployment = document.getElementById("reloadDeployment");
 
-    buttonReloadDeployment.addEventListener('click', function() {
+    buttonReloadDeployment.addEventListener('click', function () {
         setUpMopinion();
         alert("Cordova will reload the MopinionSDK");
     });
-
 }
 
 function setUpMopinion() {
-        // here your deployment key as default
-        my_deployment_key = "YourDeploymentKey";
+    // here your deployment key as default
+    var my_deployment_key = "YourDeploymentKey";
 
-        deployment_key = document.getElementById("deploymentKey").value;
-        if (deployment_key === "") {
-            deployment_key = my_deployment_key;
-            document.getElementById("deploymentKey").value=deployment_key;
-        }        
+    deployment_key = document.getElementById("deploymentKey").value;
+    if (deployment_key === "") {
+        deployment_key = my_deployment_key;
+        document.getElementById("deploymentKey").value = deployment_key;
+    }
 
-        isLoggingEnabled = document.getElementById("isLoggingEnabled").checked;
+    isLoggingEnabled = document.getElementById("isLoggingEnabled").checked;
 
-        // init the SDK
-        console.log("About to load the Mopinion SDK for key " + deployment_key);
-        MopinionSDK.load(
-            deployment_key, 
-            isLoggingEnabled,
-            function(result) {
-                console.log('SDK loading OK');
-            },
-            function (err) {
-                console.log('SDK encountered an error');
-            } 
-        );
+    // init the SDK
+    console.log("About to load the Mopinion SDK for key " + deployment_key);
+    MopinionSDK.load(
+        deployment_key,
+        isLoggingEnabled,
+        function (result) {
+            console.log('SDK loading OK');
+        },
+        function (err) {
+            console.log('SDK encountered an error');
+        }
+    );
 }
 
 // Just a demo.
@@ -137,15 +142,15 @@ function playWithSomeExtraData() {
 
 // open a feedback form with the reponse from the evaluate call.
 function openMyFeedbackForm(response_from_evaluate) {
-    formKey = response_from_evaluate.formKey;
+    var formKey = response_from_evaluate.formKey;
     MopinionSDK.openFormAlways(
         formKey,
-        function(result) {
+        function (result) {
             console.log('SDK openFormAlways called OK ');
         },
         function (err) {
             console.log('SDK openFormAlways encountered an error ');
-        } 
+        }
 
-    )
-} 
+    );
+}

@@ -24,14 +24,30 @@ import MopinionSDK
         MopinionSDK.load(deploymentKey as NSString, enableLogging)
 
           // the success parameters to give to the callback
-        sendPluginResult(wasSuccessful: true, withParameters: outparams)
+        sendPluginResultOK(withParameters: outparams)  // pretend it allways works
       } else {
-        outparams["error"]="No deployment key specified"
-        sendPluginResult(wasSuccessful: false, withParameters: outparams)
+        sendPluginError(errMsg: "No deployment key specified.", withParameters: outparams)
       }
 
     }
 
+    @objc(event:)
+    func event(command: CDVInvokedUrlCommand) {
+        pendingCommand = command
+        // retrieve args from a dictionary
+        let params = command.arguments[0] as? [String: Any]
+        let event = params?["event"] as? String ?? ""
+
+        if !event.isEmpty {
+            // this will return immediately without waiting for a form to open
+            MopinionSDK.event(getCordovaVC(), event)
+            
+            sendPluginResultOK(withParameters: params)  // pretend it always works
+        } else {
+            sendPluginError(errMsg: "No event specified, provide an event to the call.", withParameters: params)
+        }
+    }
+    
     @objc(evaluate:)
     func evaluate(command: CDVInvokedUrlCommand) {
         pendingCommand = command
