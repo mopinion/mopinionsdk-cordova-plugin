@@ -7,22 +7,31 @@ It uses our webview based mobile SDKs
 
 to actually implement the feedback forms.
 
-## Release notes 0.1.1
-* This is a beta version to give you a sneak peek on our Cordova plugin release. If you encounter any issues, please inform us via support.
-* Added iOS `event` handler. Dark mode support.
+## Contents
+- [Release notes](#release-notes)
+- [Installation](#installation)
+- [Usage](#usage)
+	- [Implement the SDK](#usage-implement)
+	- [Send an event to open a form](#usage-send-event)
+	- [Passing extra/meta data](#usage-meta-data)
+	- [Evaluate if a form will open](#usage-evaluate)
+- [DemoApp](#demo-app)
 
-### Release notes 0.1.0
-* Beta version to give you a sneak peek on our upcoming Cordova plugin release.
-* In Android, the plugin starts another activity. Make sure that your app saves its state before calling `event()` or `openFormAlways()`. 
+## <a name="release-notes">Release notes 0.1.2</a>
+
+### Changes
+* Updated for Cordova version 11.0.0
+* Uses our currently latest iOS and Android SDKs.
 
 ### Known issues
-* Our plugin uses Swift 5 on iOS, but current Cordova version 9 still prefers Swift 4. You can ignore the warnings that Cordova produces upon install about the Swift version.
-* Our plugin uses the AndroidX library on Android, but current Cordava version 9 still prefers the deprecated android-support-library. You can ignore the Gradle property warnings that Cordova produces upon install about android.useAndroidX and android.enableJetifier.
-* On Apple Silicon machines, using Xcode 12.4 iOS simulator, your project might fail building with an error `Module 'MopinionSDK' was created for incompatible target arm64-apple-ios9.0`. To bypass this temporary problem, in Xcode, set the **debug** build setting `Excluded Architectures` for your project and subprojects to `arm64`.
 * The current `event()` method doesn't actually use the callback as would be optimal for Cordova. If you need to run code after a callback, prefer the `evaluate()` and `openFormAlways()` methods instead. 
 * The `load()` method currently doesn't use the callback but completes autonomously in the background. Try to use the method at the application start.
+* Cordova is picky on runtime-configurations. For certain combinations of simulator and ios versions, when trying to run the DemoApp from the command line (cordova run ios), Cordova 11 fails with `FBSOpenApplicationServiceErrorDomain` errors. Open the `DemoApp.xcworkspace` from XCode instead and it will run fine. The DemoApp has been tested to work with XCode 13.4.1 iPhone SE simulator on iOS 15.5.
+* In Android, the plugin starts another activity. Make sure that your app saves its state before calling `event()` or `openFormAlways()`. 
+* DemoApp version 0.1.2 might generate some warnings in Android Studio Chipmunk, due to an older gradle version used in the app. They can be ignored, the app will work fine for development.
 
-## Installation
+## <a name="installation">Installation</a>
+
 ### npm
 Cordova relies on npm. Install [Node.js/npm](https://www.npmjs.com/get-npm) first.
 
@@ -66,9 +75,9 @@ $ cordova platform add android
 
 Now implement the SDK and after that your project should be ready to run.
 
-## Usage
+## <a name="usage">Usage</a>
 
-### Implement the SDK
+### <a name="usage-implement">Implement the SDK</a>
 In your index.js file, in the `onDeviceReady()` function, include the method to load the SDK  
 
 ```javascript
@@ -94,7 +103,7 @@ function onDeviceReady() {
 The `key` should be replaced with your specific deployment key. This key can be found in your Mopinion account at the `Feedback forms` section under `Deployments`.
 The `log` flag can be set to `true` while developing the app to see log messages from the MopinionSDK in Android Studio/Xcode. (The default is `false` if not supplied.)
 
-### Send an event to open a form
+### <a name="usage-send-event">Send an event to open a form</a>
 After the SDK has been loaded, then elsewhere you can send an event to open your form, for instance in a button handler.
 
 ```javascript
@@ -117,7 +126,7 @@ After the SDK has been loaded, then elsewhere you can send an event to open your
 The `event` is a specific event that can be connected to a feedback form action in the Mopinion system.  
 The default `_button` event triggers the form, but it can have any applicable name to define your custom events.
 
-### Passing meta data from your app to Mopinion forms
+### <a name="usage-meta-data">Passing meta data from your app to Mopinion forms</a>
 Optionally, you can send extra data from your app to your feedback form. 
 Provide the `addData()` method with a key and a value parameter for each key-value pair that you want to add.
 The data should be added before using the `event()` or `evaluate()` methods, if you want to include the data in the form that comes up for that event.
@@ -159,7 +168,7 @@ If you want to remove all the extra data, use this method instead:
 MopinionSDK.removeAllExtraData();
 ```
 
-### Evaluate if a form will open
+### <a name="usage-evaluate">Evaluate if a form will open</a>
 The `event()` method autonomously checks deployment conditions and opens a form, or not.
 
 Alternatively, use the `evaluate()` and `openFormAlways()` methods to give your app more control on opening a form for proactive events or take actions when no form would have opened.
@@ -213,8 +222,8 @@ function openMyFeedbackForm(response_from_evaluate) {
 	
 ```
 
-## Demo app
-The github repo folder `DemoApp` contains a Cordova app that you can build yourself.
+## <a name="demo-app">Demo app</a>
+The github repo folder [`DemoApp`](https://github.com/mopinion/mopinionsdk-cordova-plugin/tree/main/DemoApp) contains a Cordova app that you can build yourself.
 
 1. You'll need to have a Mopinion deployment key to actually use any forms. In the file `DemoApp/www/js/index.js`, change the placeholder `YourDeploymentKey` to your deployment key.
 2. In the terminal, execute:
@@ -233,7 +242,8 @@ Next you can run it with either
 
 Note:
 
-* Use the button "Reload Deployment" if you change the deployment key after the app has started.  
+* If `cordova run ios` fails, try opening the `platforms/ios/DemoApp.xcworkspace` directly from XCode.
+* Use the button "Reload Deployment" if you change the deployment key after the app has started.
 
 ## Support
 The Mopinion SDK plugin for Cordova is maintained by the Mopinion Development Team. For support, please contact support@mopinion.com

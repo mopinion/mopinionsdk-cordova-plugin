@@ -29,6 +29,8 @@ public class MopinionCordova extends CordovaPlugin {
         pendingCallbackContext = null;
     }
 
+    // TODO: maybe add plugin destroy and resume in onSaveInstanceState and onRestoreStateForActivityResult
+
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         JSONObject params;
@@ -40,6 +42,10 @@ public class MopinionCordova extends CordovaPlugin {
             case "evaluate":
                 params = args.getJSONObject(0);
                 this.evaluate(params, callbackContext);
+                return true;
+            case "event":
+                params = args.getJSONObject(0);
+                this.event(params, callbackContext);
                 return true;
             case "load":
                 params = args.getJSONObject(0);
@@ -60,6 +66,7 @@ public class MopinionCordova extends CordovaPlugin {
             default:
                 return false;   // indicates INVALID_ACTION
         }
+//        return false;
     }
 
     private void load(JSONObject params, CallbackContext callbackContext) {
@@ -88,8 +95,31 @@ public class MopinionCordova extends CordovaPlugin {
         if (deploymentKey.isEmpty()) {
             sendPluginError("No deployment key given.", params);
         } else {
+            // load the SDK. TODO: make this async when the SDK becomes Async
             M = new Mopinion(cordova.getContext(), deploymentKey, enableLogging);
             sendPluginResultOK(outparams);
+        }
+    }
+
+    // TODO: replace with a function that actually uses the callback
+    private void event(JSONObject params, CallbackContext callbackContext) {
+        pendingCallbackContext = callbackContext;
+
+        String event;
+        try {
+            event = params.getString("event");
+        } catch (JSONException jse) {
+            sendPluginError("Error reading event: " + jse.getMessage(), params);
+            return;
+        }
+
+        if (event.isEmpty()) {
+            sendPluginError("No event specified, provide an event to the call.", params);
+            return;
+        } else {
+            // this will return immediately without waiting for a form to open
+            M.event(event);
+            sendPluginResultOK(params); // pretend it always works
         }
     }
 
@@ -125,6 +155,19 @@ public class MopinionCordova extends CordovaPlugin {
                     }
 
                     sendPluginResultOK(outparams);
+
+//                    // here the code to check the parameters
+//                    if(hasResult) {
+//                        // at least one form was found and all optional parameters are non-null
+//                        M.openFormAlways(formKey); // because conditions can change every time, use the formkey
+//                    }else{
+//                        // no form would open
+//                        if(formKey !=null) {
+//                            M.openFormAlways(formKey); // because conditions can change every time, use the formkey
+//                        }else{
+////                            Toast.makeText(getApplicationContext(), "Evaluate: no form found for event '" + event + "'.", Toast.LENGTH_LONG).show();
+//                        }
+//                    }
                 }
             } );
         }
@@ -154,6 +197,7 @@ public class MopinionCordova extends CordovaPlugin {
             sendPluginError("No formKey specified, provide a formKey to the call.", outparams);
             return;
         } else {
+            // TODO: later convert into async call with success/error-handling
             M.openFormAlways(formKey);
             sendPluginResultOK(outparams);
         }
@@ -217,6 +261,7 @@ public class MopinionCordova extends CordovaPlugin {
         JSONObject outparams = new JSONObject();
         try {
             outparams.put("event", "remove_all_extra_data");
+//            outparams.put("details", params);
         } catch (JSONException jse) {
             sendPluginError("Problem creating JSON: " + jse.getMessage());
             return;

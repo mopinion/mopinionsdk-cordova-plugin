@@ -16,6 +16,7 @@ exports.load = function (deploymentKey, enableLogging, callback, errorCallback) 
         enableLogging: enableLogging
     };
 
+    // exec(callback, errorCallback, 'MopinionSDK', 'load', [arg0]);  // if only one argument, use array
     exec(callback, errorCallback, 'MopinionSDK', 'load', [params]);
 };
 
