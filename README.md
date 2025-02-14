@@ -9,5 +9,5 @@ Under the hood, it uses our webview based mobile SDKs mopinion-sdk-ios-web and m
 ## Dependencies
 Cordova includes our dependencies automatically, no manual actions needed. But if you want to look into our webview based mobile SDKs, they are also on github: 
 
-* [mopinion-sdk-ios-web](https://github.com/mopinion/mopinion-sdk-ios-web) for iOS
-* [mopinion-sdk-android-web](https://github.com/mopinion/mopinion-sdk-ios-web) for Android
+* [mopinion-sdk-ios-web](https://github.com/mopinion-com/mopinion-sdk-ios-web) for iOS
+* [mopinion-sdk-android-web](https://github.com/mopinion-com/mopinion-sdk-android-web) for Android
