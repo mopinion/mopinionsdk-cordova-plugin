@@ -1,3 +1,9 @@
+# 0.1.2
+* Updated for Cordova version 11.0.0
+* Uses our currently latest iOS and Android SDKs.
+* DemoApp version 0.1.2 might generate some warnings in Android Studio Chipmunk, due to an older gradle version used in the app. They can be ignored, the app will work fine for development.
+* Tested on iOS 15 using XCode 13.4.1.
+
 # 0.1.1
 * Plugin made for Cordova 9. 
 * Added iOS `event` handler. Dark mode support.

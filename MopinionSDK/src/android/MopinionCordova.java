@@ -1,8 +1,12 @@
 package com.mopinion.plugin;
 
-import androidx.annotation.Nullable;
+import android.app.Activity;
 
-import com.mopinion.mopinionsdkweb.Mopinion;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.mopinion.android_sdk_web.Mopinion;   // version 1.x
+import com.mopinion.android_sdk_web.domain.events.Reason;
+import com.mopinion.android_sdk_web.ui.states.FormState;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -13,20 +17,24 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Field;
+
+import kotlin.Unit;
+
 /**
-* Bridges the cordova plugin calls from JavaScript to the mopinionwebsdk.
-*/
+ * Bridges the cordova plugin calls from JavaScript to the mopinionwebsdk.
+ */
 public class MopinionCordova extends CordovaPlugin {
 
     private Mopinion M;
-    private CallbackContext pendingCallbackContext; // the context of any pending async call
+//    private CallbackContext pendingCallbackContext; // the context of any pending async call
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         // our init code for the first time the plugin is activated
         M = null;
-        pendingCallbackContext = null;
+//        pendingCallbackContext = null;
     }
 
     // TODO: maybe add plugin destroy and resume in onSaveInstanceState and onRestoreStateForActivityResult
@@ -70,13 +78,13 @@ public class MopinionCordova extends CordovaPlugin {
     }
 
     private void load(JSONObject params, CallbackContext callbackContext) {
-        pendingCallbackContext = callbackContext;
+//        pendingCallbackContext = callbackContext;
 
         String deploymentKey;
         try {
             deploymentKey = params.getString("deploymentKey");
         } catch (JSONException jse) {
-            sendPluginError("Error reading deployment key:" + jse.getMessage(), params);
+            sendPluginError(callbackContext,"Error reading deployment key:" + jse.getMessage(), params);
             return;
         }
         boolean enableLogging;
@@ -88,99 +96,123 @@ public class MopinionCordova extends CordovaPlugin {
             outparams.put("event", "deployment_will_load");
             outparams.put("details", params);
         } catch (JSONException jse) {
-            sendPluginError("Problem creating JSON: " + jse.getMessage(), params);
+            sendPluginError(callbackContext,"Problem creating JSON: " + jse.getMessage(), params);
             return;
         }
 
         if (deploymentKey.isEmpty()) {
-            sendPluginError("No deployment key given.", params);
+            sendPluginError(callbackContext, "No deployment key given.", params);
         } else {
-            // load the SDK. TODO: make this async when the SDK becomes Async
-            M = new Mopinion(cordova.getContext(), deploymentKey, enableLogging);
-            sendPluginResultOK(outparams);
+            // mopinion needs a companion object before doing anything else
+            AppCompatActivity activity = cordova.getActivity();
+            if ( activity != null ) {
+                Mopinion.Companion.initialise(activity, deploymentKey, enableLogging);
+                // load the SDK. TODO: make this async when this SDK method becomes Async
+                // the 2.0.0 sdk version no longer needs this
+                M = new Mopinion(activity);
+                sendPluginResultOK(callbackContext, outparams);
+            } else {
+                sendPluginError(callbackContext, "MopinionSDK requires a non-null Activity.", params);
+            }
         }
     }
 
-    // TODO: replace with a function that actually uses the callback
     private void event(JSONObject params, CallbackContext callbackContext) {
-        pendingCallbackContext = callbackContext;
+//        pendingCallbackContext = callbackContext;
 
         String event;
         try {
             event = params.getString("event");
         } catch (JSONException jse) {
-            sendPluginError("Error reading event: " + jse.getMessage(), params);
+            sendPluginError(callbackContext,"Error reading event: " + jse.getMessage(), params);
             return;
         }
 
         if (event.isEmpty()) {
-            sendPluginError("No event specified, provide an event to the call.", params);
+            sendPluginError(callbackContext,"No event specified, provide an event to the call.", params);
             return;
         } else {
             // this will return immediately without waiting for a form to open
-            M.event(event);
-            sendPluginResultOK(params); // pretend it always works
+            addCordovaPluginVersionToData();
+            M.event(event, false, formState -> {
+                if (formState instanceof FormState.FormOpened) {
+                    sendPluginResultOK(callbackContext, params);
+                } else if (formState instanceof FormState.HasNotBeenShown) {
+                    Reason reasonWhyTheFormDidNotShow = ((FormState.HasNotBeenShown) formState).getReason();
+                    if (reasonWhyTheFormDidNotShow instanceof Reason.ErrorWhileFetchingForm) {
+                        sendPluginError(callbackContext, "Error while fetching the form");
+                    } else {
+                        // all fine if the form can not be shown because of conditions or missing event
+                        sendPluginResultOK(callbackContext, params);
+                    }
+                } else {
+                    sendPluginResultOK(callbackContext, params); // pretend it always works for the other cases
+                }
+                return Unit.INSTANCE;
+            });
         }
     }
 
     private void evaluate(JSONObject params, CallbackContext callbackContext) {
-        pendingCallbackContext = callbackContext;
+//        pendingCallbackContext = callbackContext;
 
         String event;
         try {
             event = params.getString("event");
         } catch (JSONException jse) {
-            sendPluginError("Error reading event: " + jse.getMessage(), params);
+            sendPluginError(callbackContext, "Error reading event: " + jse.getMessage(), params);
             return;
         }
 
         if (event.isEmpty()) {
-            sendPluginError("No event specified, provide an event to the call.", params);
+            sendPluginError(callbackContext, "No event specified, provide an event to the call.", params);
             return;
         } else {
-            // evaluate() will pass the formkey, if any, to its callback handler
-            M.evaluate(event, new Mopinion.MopinionOnEvaluateListener() {
-                @Override
-                public void onMopinionEvaluate(boolean hasResult, String event, @Nullable String formKey, @Nullable JSONObject response) {
-                    // prepare return args
-                    JSONObject outparams = new JSONObject();
-                    try {
-                        outparams.put("hasResult", hasResult);
-                        outparams.put("event", event);
-                        outparams.put("formKey", (formKey != null) ? formKey : JSONObject.NULL);
-                        outparams.put("response", (response != null) ? response : JSONObject.NULL);
-                    } catch (JSONException jse) {
-                        sendPluginError("Problem creating JSON: " + jse.getMessage(), params);
-                        return;
-                    }
-
-                    sendPluginResultOK(outparams);
-
-//                    // here the code to check the parameters
-//                    if(hasResult) {
-//                        // at least one form was found and all optional parameters are non-null
-//                        M.openFormAlways(formKey); // because conditions can change every time, use the formkey
-//                    }else{
-//                        // no form would open
-//                        if(formKey !=null) {
-//                            M.openFormAlways(formKey); // because conditions can change every time, use the formkey
-//                        }else{
-////                            Toast.makeText(getApplicationContext(), "Evaluate: no form found for event '" + event + "'.", Toast.LENGTH_LONG).show();
-//                        }
+            // sdk version 1.x/2.0.0 didn't implement this method
+            sendPluginError(callbackContext, "evaluate() method currently not implemented in Android");
+//            // evaluate() will pass the formkey, if any, to its callback handler
+//            M.evaluate(event, new Mopinion.MopinionOnEvaluateListener() {
+//                @Override
+//                public void onMopinionEvaluate(boolean hasResult, String event, @Nullable String formKey, @Nullable JSONObject response) {
+//                    // prepare return args
+//                    JSONObject outparams = new JSONObject();
+//                    try {
+//                        outparams.put("hasResult", hasResult);
+//                        outparams.put("event", event);
+//                        outparams.put("formKey", (formKey != null) ? formKey : JSONObject.NULL);
+//                        outparams.put("response", (response != null) ? response : JSONObject.NULL);
+//                    } catch (JSONException jse) {
+//                        sendPluginError(callbackContext, "Problem creating JSON: " + jse.getMessage(), params);
+//                        return;
 //                    }
-                }
-            } );
+//
+//                    sendPluginResultOK(callbackContext, outparams);
+//
+////                    // here the code to check the parameters
+////                    if(hasResult) {
+////                        // at least one form was found and all optional parameters are non-null
+////                        M.openFormAlways(formKey); // because conditions can change every time, use the formkey
+////                    }else{
+////                        // no form would open
+////                        if(formKey !=null) {
+////                            M.openFormAlways(formKey); // because conditions can change every time, use the formkey
+////                        }else{
+//////                            Toast.makeText(getApplicationContext(), "Evaluate: no form found for event '" + event + "'.", Toast.LENGTH_LONG).show();
+////                        }
+////                    }
+//                }
+//            } );
         }
     }
 
     private void openFormAlways(JSONObject params, CallbackContext callbackContext) {
-        pendingCallbackContext = callbackContext;
+//        pendingCallbackContext = callbackContext;
 
         String formKey;
         try {
             formKey = params.getString("formKey");
         } catch (JSONException jse) {
-            sendPluginError("Error reading formKey: " + jse.getMessage(), params);
+            sendPluginError(callbackContext,"Error reading formKey: " + jse.getMessage(), params);
             return;
         }
 
@@ -189,22 +221,26 @@ public class MopinionCordova extends CordovaPlugin {
         try {
             outparams.put("details", params);
         } catch (JSONException jse) {
-            sendPluginError("Problem creating JSON: " + jse.getMessage(), params);
+            sendPluginError(callbackContext, "Problem creating JSON: " + jse.getMessage(), params);
             return;
         }
 
         if (formKey.isEmpty()) {
-            sendPluginError("No formKey specified, provide a formKey to the call.", outparams);
+            sendPluginError(callbackContext, "No formKey specified, provide a formKey to the call.", outparams);
             return;
         } else {
-            // TODO: later convert into async call with success/error-handling
-            M.openFormAlways(formKey);
-            sendPluginResultOK(outparams);
+            // sdk 1.x, 2.0.0 didn't implement this method
+            sendPluginError(callbackContext, "openFormAlways() method currently not implemented in Android");
+
+//            // TODO: later convert into async call with success/error-handling
+//            addCordovaPluginVersionToData();
+//            M.openFormAlways(formKey);
+//            sendPluginResultOK(callbackContext, outparams);
         }
     }
 
     private void addData(JSONObject params, CallbackContext callbackContext) {
-        pendingCallbackContext = callbackContext;
+//        pendingCallbackContext = callbackContext;
 
         String forDataKey;
         forDataKey = params.optString("forDataKey");
@@ -218,20 +254,20 @@ public class MopinionCordova extends CordovaPlugin {
             outparams.put("event", "add_extra_data");
             outparams.put("details", params);
         } catch (JSONException jse) {
-            sendPluginError("Problem creating JSON: " + jse.getMessage(), params);
+            sendPluginError(callbackContext,"Problem creating JSON: " + jse.getMessage(), params);
             return;
         }
 
         if (forDataKey.isEmpty()) {
-            sendPluginError("No DataKey specified, provide a forDataKey to the call.", params);
+            sendPluginError(callbackContext, "No DataKey specified, provide a forDataKey to the call.", params);
         } else {
             M.data(forDataKey,dataValue);
-            sendPluginResultOK(outparams);
+            sendPluginResultOK(callbackContext, outparams);
         }
     }
 
     private void removeData(JSONObject params, CallbackContext callbackContext) {
-        pendingCallbackContext = callbackContext;
+//        pendingCallbackContext = callbackContext;
 
         String forDataKey;
         forDataKey = params.optString("forDataKey");
@@ -242,20 +278,20 @@ public class MopinionCordova extends CordovaPlugin {
             outparams.put("event", "remove_extra_data");
             outparams.put("details", params);
         } catch (JSONException jse) {
-            sendPluginError("Problem creating JSON: " + jse.getMessage(), params);
+            sendPluginError(callbackContext, "Problem creating JSON: " + jse.getMessage(), params);
             return;
         }
 
         if (forDataKey.isEmpty()) {
-            sendPluginError("No DataKey specified, provide a forDataKey to the call.", params);
+            sendPluginError(callbackContext, "No DataKey specified, provide a forDataKey to the call.", params);
         } else {
             M.removeData(forDataKey);
-            sendPluginResultOK(outparams);
+            sendPluginResultOK(callbackContext, outparams);
         }
     }
 
     private void removeAllExtraData(CallbackContext callbackContext) {
-        pendingCallbackContext = callbackContext;
+//        pendingCallbackContext = callbackContext;
 
         // prepare return args
         JSONObject outparams = new JSONObject();
@@ -263,67 +299,128 @@ public class MopinionCordova extends CordovaPlugin {
             outparams.put("event", "remove_all_extra_data");
 //            outparams.put("details", params);
         } catch (JSONException jse) {
-            sendPluginError("Problem creating JSON: " + jse.getMessage());
+            sendPluginError(callbackContext, "Problem creating JSON: " + jse.getMessage());
             return;
         }
 
         M.removeData();
-        sendPluginResultOK(outparams); // pretend it always works
+        sendPluginResultOK(callbackContext, outparams); // pretend it always works
     }
 
     // MARK: helper functions
 
     // MARK: submit plugin result, if any. Use wasSuccessful = false to report error.
     // Don't call this directly, instead use sendPluginResultOK or sendPluginError
-    private void sendPluginResult(boolean wasSuccessful, JSONObject withParameters) {
-        if(pendingCallbackContext == null) {
+    private void sendPluginResult(CallbackContext callbackContext, boolean wasSuccessful, JSONObject withParameters) {
+        if(callbackContext == null) {
             LOG.e("PluginResultError", "CallbackContext is not set.");
             return;
         }
 
         if ((withParameters) != null) {
             if (wasSuccessful) {
-                pendingCallbackContext.success(withParameters);
+                callbackContext.success(withParameters);
             } else {
-                pendingCallbackContext.error(withParameters);
+                callbackContext.error(withParameters);
             }
         } else {
             if (wasSuccessful) {
-                pendingCallbackContext.success();
+                callbackContext.success();
             } else {
                 // this should never happen, an error message is mandatory
-                pendingCallbackContext.error("No error message was supplied.");
+                callbackContext.error("No error message was supplied.");
             }
         }
-        pendingCallbackContext = null;
+//        pendingCallbackContext = null;
     }
 
-    private void sendPluginResultOK(JSONObject withParameters) {
-        sendPluginResult(true, withParameters);
+    private void sendPluginResultOK(CallbackContext callbackContext, JSONObject withParameters) {
+        sendPluginResult(callbackContext, true, withParameters);
     }
 
-    private void sendPluginResultOK() {
-        sendPluginResult(true, null);
+    private void sendPluginResultOK(CallbackContext callbackContext) {
+        sendPluginResult(callbackContext, true, null);
     }
 
     // let the plugin caller know that the call failed
-    private void sendPluginError(String errMsg, JSONObject withParameters) {
+    private void sendPluginError(CallbackContext callbackContext, String errMsg, JSONObject withParameters) {
         if(errMsg.isEmpty()) {
-            sendPluginResult(false, withParameters );
+            sendPluginResult(callbackContext, false, withParameters);
         } else {
             JSONObject extendedParams = (withParameters != null) ? withParameters : new JSONObject();
             try {
                 extendedParams.put("error", errMsg);
             } catch (JSONException jse) {
-                if(pendingCallbackContext != null) {
-                    pendingCallbackContext.error("Problem while preparing JSON error: " + jse.getMessage());
+                if(callbackContext != null) {
+                    callbackContext.error("Problem while preparing JSON error: " + jse.getMessage());
                 }
             }
-            sendPluginResult( false, extendedParams );
+            sendPluginResult(callbackContext, false, extendedParams);
         }
     }
 
-    private void sendPluginError(String errMsg) {
-        sendPluginError(errMsg, null);
+    private void sendPluginError(CallbackContext callbackContext, String errMsg) {
+        sendPluginError(callbackContext, errMsg, null);
+    }
+
+    private String getCordovaPluginSemanticVersion() {
+        // Cordova creates our buildConfig class in the namespace of the app.
+        // But we don't know the name of the app, so can't import its BuildConfig.
+        // Instead we use reflection to read our version from the app's BuildConfig.
+        final String BUILD_CONFIG_CLASSNAME = "BuildConfig";
+        String semanticVersion = null;
+
+        // Load PackageInfo
+        Activity activity = cordova.getActivity();
+        String packageName = activity.getPackageName();
+        String buildConfigClassFullyQualifiedName = null;
+
+        // Try to get BuildConfig class using Reflection
+        Class bcClass = null;
+
+        try {
+            buildConfigClassFullyQualifiedName = packageName + "." + BUILD_CONFIG_CLASSNAME;
+            bcClass = Class.forName(buildConfigClassFullyQualifiedName);
+        } catch (ClassNotFoundException e) {
+            LOG.e("MopinionCordovaError", "Failed to get semantic version.");
+//          callbackContext.error("MopinionCordova exception: " + e.getMessage());
+        }
+
+        if (bcClass == null) {
+            Package basePackage = activity.getClass().getPackage();
+            if (basePackage != null) {
+                String basePackageName = basePackage.getName();
+                buildConfigClassFullyQualifiedName = basePackageName + "." + BUILD_CONFIG_CLASSNAME;
+            }
+            try {
+                bcClass = Class.forName(buildConfigClassFullyQualifiedName);
+            } catch (ClassNotFoundException e) {
+                LOG.e("MopinionCordovaError", "Failed to get semantic version.");
+//          callbackContext.error("MopinionCordova exception: " + e.getMessage());
+                return null;
+            }
+        }
+
+        // now retrieve the value from the BuildConfig class
+        try {
+            Field versionField = bcClass.getField("MOPINION_CORDOVA_PLUGIN_VERSION");
+            semanticVersion = (String) versionField.get(bcClass);
+        } catch(Exception e) {
+            LOG.e("MopinionCordovaError", "Failed to get semantic version.");
+//          callbackContext.error("MopinionCordova internal exception: " + e.getMessage());
+            return null;
+        }
+
+        return semanticVersion;
+    }
+
+    private void addCordovaPluginVersionToData() {
+        String forDataKey = "Cordova plugin version";
+
+        String dataValue;
+        dataValue = getCordovaPluginSemanticVersion();
+        if(dataValue != null && M != null) {
+            M.data(forDataKey, dataValue);
+        }
     }
 }

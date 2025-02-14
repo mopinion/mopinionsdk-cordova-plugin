@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.mopinion.mopinionsdk.demoapp" version="0.1.2" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.mopinion.mopinionsdk.demoapp" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>DemoApp</name>
     <description>
         A sample Apache Cordova application using the MopinionSDK plugin.
@@ -22,5 +22,6 @@
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
         <preference name="SwiftVersion" value="5" />
+        <preference name="deployment-target" value="12.0" />
     </platform>
 </widget>

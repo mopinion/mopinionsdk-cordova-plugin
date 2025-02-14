@@ -1,0 +1,7 @@
+/* Generated file, do not edit */
+
+android {
+    defaultConfig {
+        buildConfigField "String", "MOPINION_CORDOVA_PLUGIN_VERSION", "\"1.0.0\""
+    }
+}

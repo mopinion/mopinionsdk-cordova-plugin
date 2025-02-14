@@ -117,3 +117,4 @@ exports.removeData = function (forDataKey, callback, errorCallback) {
 exports.removeAllExtraData = function (callback, errorCallback) {
     exec(callback, errorCallback, 'MopinionSDK', 'removeAllExtraData');
 };
+

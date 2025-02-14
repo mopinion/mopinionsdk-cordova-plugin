@@ -2,8 +2,8 @@
 The Mopinion SDK Cordova plugin allows to collect feedback from a mobile Cordova app, based on events.
 It uses our webview based mobile SDKs 
 
-* [mopinion-sdk-ios-web](https://github.com/mopinion/mopinion-sdk-ios-web) for iOS
-* [mopinion-sdk-android-web](https://github.com/mopinion/mopinion-sdk-ios-web) for Android
+* [mopinion-sdk-ios-web](https://github.com/mopinion-com/mopinion-sdk-ios-web) for iOS
+* [mopinion-sdk-android-web](https://github.com/mopinion-com/mopinion-sdk-android-web) for Android
 
 to actually implement the feedback forms.
 
@@ -17,18 +17,31 @@ to actually implement the feedback forms.
 	- [Evaluate if a form will open](#usage-evaluate)
 - [DemoApp](#demo-app)
 
-## <a name="release-notes">Release notes 0.1.2</a>
+## <a name="release-notes">Release notes 1.0.0</a>
 
 ### Changes
-* Updated for Cordova version 11.0.0
-* Uses our currently latest iOS and Android SDKs.
+* Updated for Cordova version 12.0.0
+* Implements callbacks for the event() method.
+* Uses our iOS web SDK 0.7.3 and Android web SDK 1.0.8.
+* On iOS, requires iOS version 12 or newer.
 
 ### Known issues
-* The current `event()` method doesn't actually use the callback as would be optimal for Cordova. If you need to run code after a callback, prefer the `evaluate()` and `openFormAlways()` methods instead. 
-* The `load()` method currently doesn't use the callback but completes autonomously in the background. Try to use the method at the application start.
-* Cordova is picky on runtime-configurations. For certain combinations of simulator and ios versions, when trying to run the DemoApp from the command line (cordova run ios), Cordova 11 fails with `FBSOpenApplicationServiceErrorDomain` errors. Open the `DemoApp.xcworkspace` from XCode instead and it will run fine. The DemoApp has been tested to work with XCode 13.4.1 iPhone SE simulator on iOS 15.5.
-* In Android, the plugin starts another activity. Make sure that your app saves its state before calling `event()` or `openFormAlways()`. 
-* DemoApp version 0.1.2 might generate some warnings in Android Studio Chipmunk, due to an older gradle version used in the app. They can be ignored, the app will work fine for development.
+* Cordova is picky on runtime-configurations. For certain combinations of simulator and ios versions, when trying to run the DemoApp from the command line (cordova run ios), Cordova 12 can fail to build as it generates miminum project versions to iOS 11. Open the `DemoApp.xcworkspace` from XCode instead and try to fix it there. The DemoApp has been tested to work with XCode 16.2 and iPhone SE simulator on iOS 15.5.
+* Cordova 12 also seems to have issues (cordova run android) with particular Android versions. If it doesn't build at all because of a missing xml2js, try install it manually `npm install xml2js`. 
+* If Cordova still doesn't build Android, check if it installed the plugin whitelist, which is incompatible with Android 10 devices. If so, manually remove the plugin: 
+
+```
+$ cordova plugin rm cordova-plugin-whitelist
+$ cordova platform rm android && cordova platform add android
+``` 
+
+Next open the project in Android Studio.
+
+* If Android Studio still fails to build the generated project, then in Android Studio try to tweak the project configuration settings to match [the exact requirements for cordova 12] (https://cordova.apache.org/docs/en/12.x/guide/platforms/android/index.html).
+* Android Studio Ladybug might generate some Java8 warnings while building the generated Android project. You can ignore those, the app will run. We tested with Android Studio Ladybug, Android 10 and Android 14.
+* Android side SDK 1.0.8 reports itself as `Mopinion Android Web SDK 1.0.7`, which is a known issue with this version.
+* The methods evaluate() and openFormAlways() work only on iOS at the moment, as the Android SDK 1.0.8 does not implement them. 
+
 
 ## <a name="installation">Installation</a>
 
@@ -168,12 +181,14 @@ If you want to remove all the extra data, use this method instead:
 MopinionSDK.removeAllExtraData();
 ```
 
-### <a name="usage-evaluate">Evaluate if a form will open</a>
-The `event()` method autonomously checks deployment conditions and opens a form, or not.
+### <a name="usage-evaluate">Evaluate if a form will open (discouraged in 1.0.0)</a>
 
-Alternatively, use the `evaluate()` and `openFormAlways()` methods to give your app more control on opening a form for proactive events or take actions when no form would have opened.
+The `evaluate()` and `openFormAlways()` methods from plugin version 0.1.2 would give your app more control on opening a form for events with conditions that might not have allowed a form to open.
 
-It can also be used on passive events, but such forms will always be allowed to open.
+The current plugin version 1.0.0 discourages the use of these methods as for the moment they only work on iOS.
+
+Suggest to only use the `event()` method which autonomously checks deployment conditions and opens a form, or not.
+
 
 #### Procedure overview
 
@@ -181,7 +196,7 @@ It can also be used on passive events, but such forms will always be allowed to 
 2. In the callback function, check the response parameters. If the `hasResult` flag in the response is `true`, you can retrieve the `formKey`.
 3. Optionally, pass the `formKey` to the method `openFormAlways()` to open your form directly, ignoring any conditions in the deployment.
 
-#### Callback example: evaluate() and openFormAlways()
+#### Callback example (0.1.2): evaluate() and openFormAlways()
 
 ```javascript
 function onSomeButtonPressed() {   

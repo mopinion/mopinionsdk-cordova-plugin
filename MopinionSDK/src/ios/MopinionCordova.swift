@@ -2,8 +2,15 @@ import UIKit
 import MopinionSDK
 
 @objc(MopinionCordova) class MopinionCordova : CDVPlugin {
+    var mopinionPluginVersionDelegate: MopinionCordovaPluginVersion?
+    
     // for async functions
     var pendingCommand: CDVInvokedUrlCommand?
+    
+    override init() {
+        super.init()
+        self.mopinionPluginVersionDelegate = self
+    }
     
     @objc(load:)
     func load(command: CDVInvokedUrlCommand) {
@@ -39,6 +46,8 @@ import MopinionSDK
         let event = params?["event"] as? String ?? ""
 
         if !event.isEmpty {
+            let versionFromXML = self.commandDelegate.settings["version"]
+            self.addCordovaPluginVersionToData()
             // this will return immediately without waiting for a form to open
             MopinionSDK.event(getCordovaVC(), event)
             
@@ -75,6 +84,7 @@ import MopinionSDK
         outparams["details"]=params
 
         if !formKey.isEmpty {
+            self.addCordovaPluginVersionToData()
             MopinionSDK.openFormAlways(getCordovaVC(), formKey)
             
             sendPluginResultOK(withParameters: outparams)  // pretend it allways works
@@ -198,6 +208,13 @@ import MopinionSDK
         return self.viewController // you can also get the webview or view
     }
     
+    // report our plugin version to the feedback inbox
+    fileprivate func addCordovaPluginVersionToData() {
+        if let dataValue: String = self.mopinionPluginVersionDelegate?.getCordovaPluginSemanticVersion() {
+            let forDataKey: String = "Cordova plugin version"
+            MopinionSDK.data(forDataKey, dataValue)
+        }
+    }
 }
 
 // MARK: extensions for our own protocols

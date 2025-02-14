@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="mopinionsdk-cordova-plugin" version="0.1.2" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+<plugin id="mopinionsdk-cordova-plugin" version="1.0.0" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>MopinionSDK</name>
     <js-module name="MopinionSDK" src="www/MopinionSDK.js">
         <clobbers target="MopinionSDK" />
@@ -11,13 +11,15 @@
             </feature>
         </config-file>
         <source-file src="src/ios/MopinionCordova.swift" />
+        <source-file src="src/ios/MopinionCordovaPluginVersionInterface.swift" />
+        <source-file src="src/ios/generated/MopinionCordova+PluginVersion.swift" />
         <podspec>
         	<config>
-        		<source url="https://github.com/mopinion/mopinion-sdk-ios-web.git" />
+        		<source url="https://github.com/Mopinion-com/mopinion-sdk-ios-web.git" />
         		<source url="https://github.com/CocoaPods/Specs.git" />
         	</config>
 			<pods use-frameworks="true">
-				<pod name="MopinionSDKWeb" spec=">= 0.5.1" swift-version="5" />
+				<pod name="MopinionSDKWeb" spec=">= 0.7.3" swift-version="5" />
 			</pods>
         </podspec>
     </platform>
@@ -30,6 +32,7 @@
         </config-file>
         <source-file src="src/android/MopinionCordova.java" target-dir="src/com/mopinion/plugin" />
         <framework src="src/android/mopinionsdk.gradle" custom="true" type="gradleReference" />
+        <framework src="src/android/generated/mopinion-cordova-plugin-version.gradle" custom="true" type="gradleReference"/>
         <config-file target="AndroidManifest.xml" parent="/*">
 	    	<uses-permission android:name="android.permission.INTERNET" />
     	</config-file>

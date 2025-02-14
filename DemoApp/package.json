@@ -1,7 +1,7 @@
 {
   "name": "com.mopinion.mopinionsdk.cordova.demoapp",
   "displayName": "DemoApp",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "A sample Apache Cordova application using the MopinionSDK plugin.",
   "main": "index.js",
   "scripts": {
@@ -13,10 +13,10 @@
   "author": "Mopinion BV",
   "license": "Apache-2.0",
   "devDependencies": {
-    "cordova-android": "^10.1.2",
+    "cordova-android": "^13.0.0",
     "cordova-browser": "^6.0.0",
-    "cordova-ios": "^6.2.0",
-    "mopinionsdk-cordova-plugin": "^0.1.2"
+    "cordova-ios": "^7.1.1",
+    "mopinionsdk-cordova-plugin": "^1.0.0"
   },
   "cordova": {
     "plugins": {
@@ -26,5 +26,8 @@
       "ios",
       "android"
     ]
+  },
+  "dependencies": {
+    "xml2js": "^0.6.2"
   }
 }
